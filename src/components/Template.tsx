@@ -1,4 +1,4 @@
-import { Box, Grid, Pagination, Stack } from '@mui/material';
+import { Box, Grid, Pagination, Stack, Typography } from '@mui/material';
 import FormControl from '@mui/material/FormControl';
 import OutlinedInput from '@mui/material/OutlinedInput';
 import axios from "axios";
@@ -25,7 +25,7 @@ const Template: React.FC = () => {
   const [templateData, setTemplateData] = useState<templateData[]>();
   const [sort, setSort] = useState<string>('template_price');
   const [sortOrder, setSortOrder] = useState<string>('asc');
-  const [searchText, setsearchText] = useState<string>('');
+  const [searchText, setsearchText] = useState<string>("");
   const [pageOffset, setpageOffset] = useState<number>(0);
   const [pageLimit, setpageLimit] = useState<number>(10);
   const [totalCount, setTotalCount] = useState<number>(0);
@@ -37,13 +37,14 @@ const Template: React.FC = () => {
 
   async function getAllTemplate() {
 
-    const bodyData = { "pageOffset": pageOffset, "pageLimit": pageLimit, "search": searchText, "sort": sort, "sort_order": sortOrder }
 
-    const getData = await axios.post(baseUrl + "/template", bodyData);
+    const getData = await axios.get(baseUrl + `/template?pageOffset=${pageOffset}&pageLimit=${pageLimit}&search=${searchText}&sort=${sort}&sort_order=${sortOrder}`);
     if (getData.data.templateList) {
       setTemplateData(getData.data.templateList)
       setTotalCount(getData.data.templateListCount)
-      
+      console.log(getData.data.templateListCount / 10);
+
+
     } else {
       setTemplateData([]);
       setTotalCount(0);
@@ -71,6 +72,7 @@ const Template: React.FC = () => {
           <FormControl sx={{ width: '50ch' }}>
             <OutlinedInput onChange={(e) => {
               setsearchText(e?.target.value)
+              setpageOffset(0)
             }} placeholder="Please enter text" />
           </FormControl>
 
@@ -99,9 +101,9 @@ const Template: React.FC = () => {
             <ToggleButton value="asc">Low To High</ToggleButton>
             <ToggleButton value="desc">High To Low</ToggleButton>
           </ToggleButtonGroup>
-
         </Grid>
       </Box>
+<Typography>Total Templates : {totalCount}</Typography>
 
       <Box sx={{ flexGrow: 1 }}>
         <Grid container spacing={{ xs: 2, md: 3 }} columns={{ xs: 4, sm: 8, md: 12 }}>
@@ -115,7 +117,9 @@ const Template: React.FC = () => {
 
         <Grid style={{ display: "flex", justifyContent: "center" }}>
           <Stack spacing={2}>
-            <Pagination showFirstButton showLastButton count={totalCount / pageLimit} color="primary" onChange={(event, value) => {
+            <Pagination showFirstButton showLastButton count={(totalCount / pageLimit) < 1 ? 0 : Math.round((totalCount / pageLimit))} color="primary" onChange={(event, value) => {
+              console.log("page offset is" + (value - 1) * 10);
+              
               setpageOffset((value - 1) * 10)
             }} />
           </Stack>
